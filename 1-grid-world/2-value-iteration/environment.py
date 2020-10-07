@@ -6,15 +6,19 @@ from PIL import ImageTk, Image
 
 PhotoImage = ImageTk.PhotoImage
 UNIT = 100  # 픽셀 수
-HEIGHT = 5  # 그리드월드 세로
-WIDTH = 5  # 그리드월드 가로
+HEIGHT = 7  # 그리드월드 세로
+WIDTH = 7  # 그리드월드 가로
 TRANSITION_PROB = 1
 POSSIBLE_ACTIONS = [0, 1, 2, 3]  # 상, 하, 좌, 우
 ACTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # 좌표로 나타낸 행동
 REWARDS = []
-OBST1 = (1, 2)  # 장애물1 좌표
+OBST1 = (0, 2)  # 장애물1 좌표
 OBST2 = (2, 1)  # 장애물2 좌표
-GOAL = (3, 2)  # 목표 좌표
+OBST3 = (2, 5)  # 장애물3 좌표
+OBST4 = (3, 3)  # 장애물4 좌표
+OBST5 = (1, 4)  # 장애물5 좌표
+OBST6 = (2, 4)  # 장애물6 좌표
+GOAL = (3, 4)  # 목표 좌표
 (X0, Y0, INTERVAL) = (50, 50, 100)  # Canvas 원점, 칸 간 거리
 
 
@@ -39,6 +43,14 @@ class GraphicDisplay(tk.Tk):
         self.agent.reward_table[OBST1[0]][OBST1[1]] = -1
         self.text_reward(OBST2[0], OBST2[1], "R : -1.0")
         self.agent.reward_table[OBST2[0]][OBST2[1]] = -1
+        self.text_reward(OBST3[0], OBST3[1], "R : -1.0")
+        self.agent.reward_table[OBST3[0]][OBST3[1]] = -1
+        self.text_reward(OBST4[0], OBST4[1], "R : -1.0")
+        self.agent.reward_table[OBST4[0]][OBST4[1]] = -1
+        self.text_reward(OBST5[0], OBST5[1], "R : -1.0")
+        self.agent.reward_table[OBST5[0]][OBST5[1]] = -1
+        self.text_reward(OBST6[0], OBST6[1], "R : -1.0")
+        self.agent.reward_table[OBST6[0]][OBST6[1]] = -1
         self.q_func = np.zeros((HEIGHT, WIDTH, len(POSSIBLE_ACTIONS)))
         self.step = 0
         self.reward_return = 0
@@ -84,6 +96,10 @@ class GraphicDisplay(tk.Tk):
         self.rectangle = canvas.create_image(50, 50, image=self.shapes[0])
         canvas.create_image(Y0 + OBST1[1] * INTERVAL, X0 + OBST1[0] * INTERVAL, image=self.shapes[1])  # Tri
         canvas.create_image(Y0 + OBST2[1] * INTERVAL, X0 + OBST2[0] * INTERVAL, image=self.shapes[1])  # Tri
+        canvas.create_image(Y0 + OBST3[1] * INTERVAL, X0 + OBST3[0] * INTERVAL, image=self.shapes[1])  # Tri
+        canvas.create_image(Y0 + OBST4[1] * INTERVAL, X0 + OBST4[0] * INTERVAL, image=self.shapes[1])  # Tri
+        canvas.create_image(Y0 + OBST5[1] * INTERVAL, X0 + OBST5[0] * INTERVAL, image=self.shapes[1])  # Tri
+        canvas.create_image(Y0 + OBST6[1] * INTERVAL, X0 + OBST6[0] * INTERVAL, image=self.shapes[1])  # Tri
         canvas.create_image(Y0 + GOAL[1] * INTERVAL, X0 + GOAL[0] * INTERVAL, image=self.shapes[2])  # Cir
 
         canvas.pack()
@@ -122,6 +138,12 @@ class GraphicDisplay(tk.Tk):
         self.text_reward(GOAL[0], GOAL[1], "R : 1.0")
         self.text_reward(OBST1[0], OBST1[1], "R : -1.0")
         self.text_reward(OBST2[0], OBST2[1], "R : -1.0")
+        self.text_reward(OBST3[0], OBST3[1], "R : -1.0")
+        self.text_reward(OBST4[0], OBST4[1], "R : -1.0")
+        self.text_reward(OBST5[0], OBST5[1], "R : -1.0")
+        self.text_reward(OBST6[0], OBST6[1], "R : -1.0")
+        self.step = 0
+        self.reward_return = 0
 
     def reset(self):
         self.update()
@@ -131,6 +153,10 @@ class GraphicDisplay(tk.Tk):
         self.text_reward(GOAL[0], GOAL[1], "R : 1.0")
         self.text_reward(OBST1[0], OBST1[1], "R : -1.0")
         self.text_reward(OBST2[0], OBST2[1], "R : -1.0")
+        self.text_reward(OBST3[0], OBST3[1], "R : -1.0")
+        self.text_reward(OBST4[0], OBST4[1], "R : -1.0")
+        self.text_reward(OBST5[0], OBST5[1], "R : -1.0")
+        self.text_reward(OBST6[0], OBST6[1], "R : -1.0")
         return self.canvas.coords(self.rectangle)
 
     def text_value(self, row, col, contents, font='Helvetica', size=12,
@@ -174,7 +200,6 @@ class GraphicDisplay(tk.Tk):
         return int(y), int(x)
 
     def move_by_policy(self):
-
         if self.improvement_count != 0 and self.is_moving != 1:
             self.is_moving = 1
             x, y = self.canvas.coords(self.rectangle)
@@ -259,6 +284,10 @@ class Env:
         self.reward[GOAL[0]][GOAL[1]] = 1  # reward 1 for circle
         self.reward[OBST1[0]][OBST1[1]] = -1  # reward -1 for triangle
         self.reward[OBST2[0]][OBST2[1]] = -1  # reward -1 for triangle
+        self.reward[OBST3[0]][OBST3[1]] = -1  # reward -1 for triangle
+        self.reward[OBST4[0]][OBST4[1]] = -1  # reward -1 for triangle
+        self.reward[OBST5[0]][OBST5[1]] = -1  # reward -1 for triangle
+        self.reward[OBST6[0]][OBST6[1]] = -1  # reward -1 for triangle
         self.all_state = []
 
         for x in range(WIDTH):
