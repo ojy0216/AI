@@ -12,9 +12,13 @@ class PolicyIteration:
         self.policy_table = [[[0.25, 0.25, 0.25, 0.25]] * env.width
                             for _ in range(env.height)]
         # 마침 상태의 설정
-        self.policy_table[2][2] = []
+        self.policy_table[env.goal_pos[0]][env.goal_pos[1]] = []
         # 할인율
         self.discount_factor = 0.9
+        # Reward table
+        self.reward_table = [[0] * env.width for _ in range(env.height)]
+        #  improvement 횟수
+        self.improvement_count = 0
 
     # 벨만 기대 방정식을 통해 다음 가치함수를 계산하는 정책 평가
     def policy_evaluation(self):
@@ -26,7 +30,7 @@ class PolicyIteration:
         for state in self.env.get_all_states():
             value = 0.0
             # 마침 상태의 가치 함수 = 0
-            if state == [2, 2]:
+            if state == [env.goal_pos[0], env.goal_pos[1]]:
                 next_value_table[state[0]][state[1]] = value
                 continue
 
@@ -45,10 +49,11 @@ class PolicyIteration:
     # 현재 가치 함수에 대해서 탐욕 정책 발전
     def policy_improvement(self):
         next_policy = self.policy_table
+        q_func = np.zeros((env.height, env.width, len(env.possible_actions)))
         for state in self.env.get_all_states():
-            if state == [2, 2]:
+            if state == [env.goal_pos[0], env.goal_pos[1]]:
                 continue
-            
+
             value_list = []
             # 반환할 정책 초기화
             result = [0.0, 0.0, 0.0, 0.0]
@@ -71,7 +76,15 @@ class PolicyIteration:
 
             next_policy[state[0]][state[1]] = result
 
+            q_func[state[0], state[1]] = value_list
+
         self.policy_table = next_policy
+
+        print('\nQ-value function : [{}]'.format(self.improvement_count))
+        for x in range(env.width):
+            for y in range(env.height):
+                print('({}, {}): [{}]'.format(x, y, q_func[x, y]), end='\t')
+            print('')
 
     # 특정 상태에서 정책에 따라 무작위로 행동을 반환
     def get_action(self, state):
