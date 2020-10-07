@@ -12,6 +12,10 @@ TRANSITION_PROB = 1
 POSSIBLE_ACTIONS = [0, 1, 2, 3]  # 상, 하, 좌, 우
 ACTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # 좌표로 나타낸 행동
 REWARDS = []
+OBST1 = (1, 2)  # 장애물1 좌표
+OBST2 = (2, 1)  # 장애물2 좌표
+GOAL = (3, 2)  # 목표 좌표
+(X0, Y0, INTERVAL) = (50, 50, 100)  # Canvas 원점, 칸 간 거리
 
 
 class GraphicDisplay(tk.Tk):
@@ -29,9 +33,15 @@ class GraphicDisplay(tk.Tk):
         (self.up, self.down, self.left,
          self.right), self.shapes = self.load_images()
         self.canvas = self._build_canvas()
-        self.text_reward(2, 2, "R : 1.0")
-        self.text_reward(1, 2, "R : -1.0")
-        self.text_reward(2, 1, "R : -1.0")
+        self.text_reward(GOAL[0], GOAL[1], "R : 1.0")
+        self.agent.reward_table[GOAL[0]][GOAL[1]] = 1
+        self.text_reward(OBST1[0], OBST1[1], "R : -1.0")
+        self.agent.reward_table[OBST1[0]][OBST1[1]] = -1
+        self.text_reward(OBST2[0], OBST2[1], "R : -1.0")
+        self.agent.reward_table[OBST2[0]][OBST2[1]] = -1
+        self.q_func = np.zeros((HEIGHT, WIDTH, len(POSSIBLE_ACTIONS)))
+        self.step = 0
+        self.reward_return = 0
 
     def _build_canvas(self):
         canvas = tk.Canvas(self, bg='white',
@@ -70,10 +80,11 @@ class GraphicDisplay(tk.Tk):
             canvas.create_line(x0, y0, x1, y1)
 
         # 캔버스에 이미지 추가
+        # 캔버스 이미지 좌표: X, Y축 반전
         self.rectangle = canvas.create_image(50, 50, image=self.shapes[0])
-        canvas.create_image(250, 150, image=self.shapes[1])
-        canvas.create_image(150, 250, image=self.shapes[1])
-        canvas.create_image(250, 250, image=self.shapes[2])
+        canvas.create_image(Y0 + OBST1[1] * INTERVAL, X0 + OBST1[0] * INTERVAL, image=self.shapes[1])  # Tri
+        canvas.create_image(Y0 + OBST2[1] * INTERVAL, X0 + OBST2[0] * INTERVAL, image=self.shapes[1])  # Tri
+        canvas.create_image(Y0 + GOAL[1] * INTERVAL, X0 + GOAL[0] * INTERVAL, image=self.shapes[2])  # Cir
 
         canvas.pack()
 
@@ -108,10 +119,18 @@ class GraphicDisplay(tk.Tk):
             x, y = self.canvas.coords(self.rectangle)
             self.canvas.move(self.rectangle, UNIT / 2 - x, UNIT / 2 - y)
 
+        self.text_reward(GOAL[0], GOAL[1], "R : 1.0")
+        self.text_reward(OBST1[0], OBST1[1], "R : -1.0")
+        self.text_reward(OBST2[0], OBST2[1], "R : -1.0")
+
     def reset(self):
         self.update()
         time.sleep(0.5)
         self.canvas.delete(self.rectangle)
+        self.agent.improvement_count = 0
+        self.text_reward(GOAL[0], GOAL[1], "R : 1.0")
+        self.text_reward(OBST1[0], OBST1[1], "R : -1.0")
+        self.text_reward(OBST2[0], OBST2[1], "R : -1.0")
         return self.canvas.coords(self.rectangle)
 
     def text_value(self, row, col, contents, font='Helvetica', size=12,
@@ -162,14 +181,17 @@ class GraphicDisplay(tk.Tk):
             self.canvas.move(self.rectangle, UNIT / 2 - x, UNIT / 2 - y)
 
             x, y = self.find_rectangle()
-            while len(self.agent.get_action([x, y])) != 0:
-                action = random.sample(self.agent.get_action([x, y]), 1)[0]
+            while len(self.agent.get_action([x, y], self.q_func)) != 0:
+                action = random.sample(self.agent.get_action([x, y], self.q_func), 1)[0]
                 self.after(100, self.rectangle_move(action))
                 x, y = self.find_rectangle()
+                self.step += 1
+                self.reward_return += (round(self.agent.reward_table[x][y], 2) * self.agent.discount_factor ** self.step)
             self.is_moving = 0
+            print('\nStep: {}, Total reward {} '.format(self.step, self.reward_return))
 
     def draw_one_arrow(self, col, row, action):
-        if col == 2 and row == 2:
+        if col == GOAL[0] and row == GOAL[1]:
             return
         if action == 0:  # up
             origin_x, origin_y = 50 + (UNIT * row), 10 + (UNIT * col)
@@ -216,8 +238,14 @@ class GraphicDisplay(tk.Tk):
         for i in self.arrows:
             self.canvas.delete(i)
         for state in self.env.get_all_states():
-            action = self.agent.get_action(state)
+            action = self.agent.get_action(state, self.q_func)
             self.draw_from_values(state, action)
+
+        print('\nQ-value function : [{}]'.format(self.improvement_count))
+        for x in range(WIDTH):
+            for y in range(HEIGHT):
+                print('({}, {}): [{}]'.format(x, y, self.q_func[x, y]), end='\t')
+            print('')
 
 
 class Env:
@@ -227,9 +255,10 @@ class Env:
         self.height = HEIGHT  # Height of GridWorld
         self.reward = [[0] * WIDTH for _ in range(HEIGHT)]
         self.possible_actions = POSSIBLE_ACTIONS
-        self.reward[2][2] = 1  # reward 1 for circle
-        self.reward[1][2] = -1  # reward -1 for triangle
-        self.reward[2][1] = -1  # reward -1 for triangle
+        self.goal_pos = (GOAL[0], GOAL[1])
+        self.reward[GOAL[0]][GOAL[1]] = 1  # reward 1 for circle
+        self.reward[OBST1[0]][OBST1[1]] = -1  # reward -1 for triangle
+        self.reward[OBST2[0]][OBST2[1]] = -1  # reward -1 for triangle
         self.all_state = []
 
         for x in range(WIDTH):
