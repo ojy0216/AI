@@ -6,8 +6,17 @@ from PIL import ImageTk, Image
 np.random.seed(1)
 PhotoImage = ImageTk.PhotoImage
 UNIT = 100  # 필셀 수
-HEIGHT = 5  # 그리드 월드 가로
-WIDTH = 5  # 그리드 월드 세로
+HEIGHT = 7  # 그리드 월드 가로
+WIDTH = 7  # 그리드 월드 세로
+
+OBST1 = (0, 2)  # 장애물1 좌표
+OBST2 = (2, 1)  # 장애물2 좌표
+OBST3 = (1, 4)  # 장애물3 좌표
+OBST4 = (3, 4)  # 장애물4 좌표
+OBST5 = (2, 5)  # 장애물5 좌표
+OBST6 = (3, 3)  # 장애물6 좌표
+GOAL = (3, 5)  # 목표 좌표
+X0, Y0, INTERVAL = 50, 50, 100  # Canvas 원점, 칸 간 거리
 
 
 class Env(tk.Tk):
@@ -34,10 +43,21 @@ class Env(tk.Tk):
             canvas.create_line(x0, y0, x1, y1)
 
         # 캔버스에 이미지 추가
-        self.rectangle = canvas.create_image(50, 50, image=self.shapes[0])
-        self.triangle1 = canvas.create_image(250, 150, image=self.shapes[1])
-        self.triangle2 = canvas.create_image(150, 250, image=self.shapes[1])
-        self.circle = canvas.create_image(250, 250, image=self.shapes[2])
+        # 캔버스 이미지 좌표: X, Y축 반전
+        self.rectangle = canvas.create_image(X0, Y0, image=self.shapes[0])  # Rect
+        self.triangle1 = canvas.create_image(Y0 + OBST1[1] * INTERVAL, X0 + OBST1[0] * INTERVAL,
+                                             image=self.shapes[1])  # Tri
+        self.triangle2 = canvas.create_image(Y0 + OBST2[1] * INTERVAL, X0 + OBST2[0] * INTERVAL,
+                                             image=self.shapes[1])  # Tri
+        self.triangle3 = canvas.create_image(Y0 + OBST3[1] * INTERVAL, X0 + OBST3[0] * INTERVAL,
+                                             image=self.shapes[1])  # Tri
+        self.triangle4 = canvas.create_image(Y0 + OBST4[1] * INTERVAL, X0 + OBST4[0] * INTERVAL,
+                                             image=self.shapes[1])  # Tri
+        self.triangle5 = canvas.create_image(Y0 + OBST5[1] * INTERVAL, X0 + OBST5[0] * INTERVAL,
+                                             image=self.shapes[1])  # Tri
+        self.triangle6 = canvas.create_image(Y0 + OBST6[1] * INTERVAL, X0 + OBST6[0] * INTERVAL,
+                                             image=self.shapes[1])  # Tri
+        self.circle = canvas.create_image(Y0 + GOAL[1] * INTERVAL, X0 + GOAL[0] * INTERVAL, image=self.shapes[2])  # Cir
 
         canvas.pack()
 
@@ -123,8 +143,14 @@ class Env(tk.Tk):
         if next_state == self.canvas.coords(self.circle):
             reward = 100
             done = True
-        elif next_state in [self.canvas.coords(self.triangle1),
-                            self.canvas.coords(self.triangle2)]:
+        elif next_state in [
+            self.canvas.coords(self.triangle1),
+            self.canvas.coords(self.triangle2),
+            self.canvas.coords(self.triangle3),
+            self.canvas.coords(self.triangle4),
+            self.canvas.coords(self.triangle5),
+            self.canvas.coords(self.triangle6),
+        ]:
             reward = -100
             done = True
         else:

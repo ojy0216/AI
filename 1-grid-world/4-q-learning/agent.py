@@ -3,7 +3,7 @@ import random
 from environment import Env
 from collections import defaultdict
 
-EPISODE_ROUND = 10
+EPISODE_ROUND = 100
 
 
 class QLearningAgent:
@@ -11,7 +11,7 @@ class QLearningAgent:
         self.actions = actions
         self.step_size = 0.01
         self.discount_factor = 0.9
-        self.epsilon = 0.9
+        self.epsilon = 0.1
         self.q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
 
     # <s, a, r, s'> 샘플로부터 큐함수 업데이트
@@ -45,11 +45,12 @@ def arg_max(q_list):
 if __name__ == "__main__":
     env = Env()
     agent = QLearningAgent(actions=list(range(env.n_actions)))
+    step = 0
+    episode_num = 1
+    reward_list = []
 
     for episode in range(EPISODE_ROUND):
         state = env.reset()
-        step = 0
-        episode_num = 1
 
         while True:
             # 게임 환경과 상태를 초기화
@@ -75,4 +76,7 @@ if __name__ == "__main__":
                       format(episode_num, next_state, step, episode_reward))
                 step = 0
                 episode_num += 1
+                reward_list.append(episode_reward)
                 break
+
+    np.save('7by7', reward_list)

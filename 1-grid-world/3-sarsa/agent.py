@@ -49,6 +49,7 @@ if __name__ == "__main__":
     agent = SARSAgent(actions=list(range(env.n_actions)))
     step = 0
     episode_num = 1
+    reward_list = []
 
     for episode in range(EPISODE_ROUND):
         # 게임 환경과 상태를 초기화
@@ -81,4 +82,7 @@ if __name__ == "__main__":
                       format(episode_num, next_state, step, episode_reward))
                 step = 0
                 episode_num += 1
+                reward_list.append(episode_reward)
                 break
+
+    np.save('7by7', reward_list)
