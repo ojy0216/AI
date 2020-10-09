@@ -3,7 +3,7 @@ import random
 from collections import defaultdict
 from environment import Env
 
-EPISODE_ROUND = 10
+EPISODE_ROUND = 100
 
 
 class SARSAgent:
@@ -77,7 +77,8 @@ if __name__ == "__main__":
             if done:
                 # Terminal state 이외에는 reward 가 0 이므로 1번만 계산
                 episode_reward = reward * (agent.discount_factor ** step)
-                print("Episode[{}] : step = {}, reward return = {}".format(episode_num, step, episode_reward))
+                print("Episode[{}] : Terminal state = {}, Step = {}, Reward return = {}".
+                      format(episode_num, next_state, step, episode_reward))
                 step = 0
                 episode_num += 1
                 break
