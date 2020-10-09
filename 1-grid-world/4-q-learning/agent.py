@@ -3,7 +3,8 @@ import random
 from environment import Env
 from collections import defaultdict
 
-EPISODE_ROUND = 10
+EPISODE_ROUND = 100
+ALPHA = 0.1
 
 
 class QLearningAgent:
@@ -19,7 +20,7 @@ class QLearningAgent:
         state, next_state = str(state), str(next_state)
         q_1 = self.q_table[state][action]
         # 벨만 최적 방정식을 사용한 큐함수의 업데이트
-        q_2 = reward + self.discount_factor * max(self.q_table[next_state])
+        q_2 = (1 - ALPHA) * q_1 + ALPHA * (reward + self.discount_factor * max(self.q_table[next_state]))
         self.q_table[state][action] += self.step_size * (q_2 - q_1)
 
     # 큐함수에 의거하여 입실론 탐욕 정책에 따라서 행동을 반환
@@ -47,6 +48,7 @@ if __name__ == "__main__":
     agent = QLearningAgent(actions=list(range(env.n_actions)))
     step = 0
     episode_num = 1
+    reward_list = []
 
     for episode in range(EPISODE_ROUND):
         state = env.reset()
@@ -62,7 +64,7 @@ if __name__ == "__main__":
             agent.learn(state, action, reward, next_state)
 
             state = next_state
-            
+
             # 모든 큐함수를 화면에 표시
             env.print_value_all(agent.q_table)
 
@@ -75,4 +77,7 @@ if __name__ == "__main__":
                       format(episode_num, next_state, step, episode_reward))
                 step = 0
                 episode_num += 1
+                reward_list.append(episode_reward)
                 break
+
+    np.save('non-det', reward_list)
