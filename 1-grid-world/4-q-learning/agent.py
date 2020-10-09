@@ -45,11 +45,11 @@ def arg_max(q_list):
 if __name__ == "__main__":
     env = Env()
     agent = QLearningAgent(actions=list(range(env.n_actions)))
+    step = 0
+    episode_num = 1
 
     for episode in range(EPISODE_ROUND):
         state = env.reset()
-        step = 0
-        episode_num = 1
 
         while True:
             # 게임 환경과 상태를 초기화
