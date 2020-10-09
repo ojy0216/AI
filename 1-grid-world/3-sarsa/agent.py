@@ -4,6 +4,7 @@ from collections import defaultdict
 from environment import Env
 
 EPISODE_ROUND = 100
+INIT_EPSILON = 0.1
 
 
 class SARSAgent:
@@ -11,7 +12,7 @@ class SARSAgent:
         self.actions = actions
         self.step_size = 0.01
         self.discount_factor = 0.9
-        self.epsilon = 0.1
+        self.epsilon = INIT_EPSILON
         # 0을 초기값으로 가지는 큐함수 테이블 생성
         self.q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
 
@@ -36,6 +37,9 @@ class SARSAgent:
             action = arg_max(q_list)
         return action
 
+    def set_epsilon(self, k):
+        self.epsilon = INIT_EPSILON / k
+
 
 # 큐함수의 값에 따라 최적의 행동을 반환
 def arg_max(q_list):
@@ -49,12 +53,14 @@ if __name__ == "__main__":
     agent = SARSAgent(actions=list(range(env.n_actions)))
     step = 0
     episode_num = 1
+    reward_list = []
 
     for episode in range(EPISODE_ROUND):
         # 게임 환경과 상태를 초기화
         state = env.reset()
         # 현재 상태에 대한 행동을 선택
         action = agent.get_action(state)
+
 
         while True:
             env.render()
@@ -77,8 +83,12 @@ if __name__ == "__main__":
             if done:
                 # Terminal state 이외에는 reward 가 0 이므로 1번만 계산
                 episode_reward = reward * (agent.discount_factor ** step)
-                print("Episode[{}] : Terminal state = {}, Step = {}, Reward return = {}".
-                      format(episode_num, next_state, step, episode_reward))
+                print("Episode[{}] : Epsilon = {}, Terminal state = {}, Step = {}, Reward return = {}".
+                      format(episode_num, agent.epsilon, next_state, step, episode_reward))
                 step = 0
                 episode_num += 1
+                reward_list.append((agent.epsilon, episode_reward))
+                agent.set_epsilon(episode_num)
                 break
+
+    np.save('decaying_e-greedy', reward_list)
