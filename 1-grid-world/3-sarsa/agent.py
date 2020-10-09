@@ -3,6 +3,8 @@ import random
 from collections import defaultdict
 from environment import Env
 
+EPISODE_ROUND = 10
+
 
 class SARSAgent:
     def __init__(self, actions):
@@ -45,8 +47,10 @@ def arg_max(q_list):
 if __name__ == "__main__":
     env = Env()
     agent = SARSAgent(actions=list(range(env.n_actions)))
+    step = 0
+    episode_num = 1
 
-    for episode in range(1000):
+    for episode in range(EPISODE_ROUND):
         # 게임 환경과 상태를 초기화
         state = env.reset()
         # 현재 상태에 대한 행동을 선택
@@ -65,8 +69,15 @@ if __name__ == "__main__":
             state = next_state
             action = next_action
 
+            step += 1
+
             # 모든 큐함수를 화면에 표시
             env.print_value_all(agent.q_table)
 
             if done:
+                # Terminal state 이외에는 reward 가 0 이므로 1번만 계산
+                episode_reward = reward * (agent.discount_factor ** step)
+                print("Episode[{}] : step = {}, reward return = {}".format(episode_num, step, episode_reward))
+                step = 0
+                episode_num += 1
                 break

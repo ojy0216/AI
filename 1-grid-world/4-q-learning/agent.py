@@ -3,6 +3,8 @@ import random
 from environment import Env
 from collections import defaultdict
 
+EPISODE_ROUND = 10
+
 
 class QLearningAgent:
     def __init__(self, actions):
@@ -44,8 +46,10 @@ if __name__ == "__main__":
     env = Env()
     agent = QLearningAgent(actions=list(range(env.n_actions)))
 
-    for episode in range(1000):
+    for episode in range(EPISODE_ROUND):
         state = env.reset()
+        step = 0
+        episode_num = 1
 
         while True:
             # 게임 환경과 상태를 초기화
@@ -62,5 +66,12 @@ if __name__ == "__main__":
             # 모든 큐함수를 화면에 표시
             env.print_value_all(agent.q_table)
 
+            step += 1
+
             if done:
+                # Terminal state 이외에는 reward 가 0 이므로 1번만 계산
+                episode_reward = reward * (agent.discount_factor ** step)
+                print("Episode[{}] : step = {}, reward return = {}".format(episode_num, step, episode_reward))
+                step = 0
+                episode_num += 1
                 break
