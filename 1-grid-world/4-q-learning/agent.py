@@ -11,7 +11,7 @@ class QLearningAgent:
         self.actions = actions
         self.step_size = 0.01
         self.discount_factor = 0.9
-        self.epsilon = 0.1
+        self.epsilon = 0.9
         self.q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
 
     # <s, a, r, s'> 샘플로부터 큐함수 업데이트
@@ -77,6 +77,7 @@ if __name__ == "__main__":
                 step = 0
                 episode_num += 1
                 reward_list.append(episode_reward)
+                # agent.epsilon *= 0.9
                 break
 
     np.save('7by7', reward_list)

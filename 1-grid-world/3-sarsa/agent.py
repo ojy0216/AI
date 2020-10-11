@@ -83,6 +83,7 @@ if __name__ == "__main__":
                 step = 0
                 episode_num += 1
                 reward_list.append(episode_reward)
+                # agent.epsilon *= 0.9
                 break
 
-    np.save('7by7', reward_list)
+    np.save('7by71', reward_list)
