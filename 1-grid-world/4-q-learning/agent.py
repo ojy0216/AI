@@ -4,7 +4,7 @@ from environment import Env
 from collections import defaultdict
 
 EPISODE_ROUND = 100
-INIT_EPSILON = 0.1
+INIT_EPSILON = 0.9
 
 class QLearningAgent:
     def __init__(self, actions):
@@ -83,4 +83,4 @@ if __name__ == "__main__":
                 agent.set_epsilon(episode_num)
                 break
 
-    np.save('e-greedy', reward_list)
+    np.save('decaying-e-greedy', reward_list)

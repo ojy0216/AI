@@ -91,4 +91,4 @@ if __name__ == "__main__":
                 agent.set_epsilon(episode_num)
                 break
 
-    np.save('decaying_e-greedy', reward_list)
+    np.save('e-greedy1', reward_list)
