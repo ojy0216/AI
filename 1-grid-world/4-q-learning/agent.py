@@ -3,7 +3,7 @@ import random
 from environment import Env
 from collections import defaultdict
 
-EPISODE_ROUND = 10
+EPISODE_ROUND = 100
 
 
 class QLearningAgent:
@@ -47,6 +47,8 @@ if __name__ == "__main__":
     agent = QLearningAgent(actions=list(range(env.n_actions)))
     step = 0
     episode_num = 1
+    optim_step = 0
+    optim_reward = 0
 
     for episode in range(EPISODE_ROUND):
         state = env.reset()
@@ -73,6 +75,11 @@ if __name__ == "__main__":
                 episode_reward = reward * (agent.discount_factor ** step)
                 print("Episode[{}] : Terminal state = {}, Step = {}, Reward return = {}".
                       format(episode_num, next_state, step, episode_reward))
+                if episode_reward > optim_reward:
+                    optim_reward = episode_reward
+                    optim_step = step
                 step = 0
                 episode_num += 1
                 break
+
+    print('\nMax reward: {} with step: {}'.format(optim_reward, optim_step))

@@ -49,6 +49,8 @@ if __name__ == "__main__":
     agent = SARSAgent(actions=list(range(env.n_actions)))
     step = 0
     episode_num = 1
+    optim_step = 0
+    optim_reward = 0
 
     for episode in range(EPISODE_ROUND):
         # 게임 환경과 상태를 초기화
@@ -79,6 +81,11 @@ if __name__ == "__main__":
                 episode_reward = reward * (agent.discount_factor ** step)
                 print("Episode[{}] : Terminal state = {}, Step = {}, Reward return = {}".
                       format(episode_num, next_state, step, episode_reward))
+                if episode_reward > optim_reward:
+                    optim_reward = episode_reward
+                    optim_step = step
                 step = 0
                 episode_num += 1
                 break
+
+    print('\nMax reward: {} with step: {}'.format(optim_reward, optim_step))
