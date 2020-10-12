@@ -106,6 +106,11 @@ class Env(tk.Tk):
         base_action = np.array([0, 0])
         self.render()
 
+        state_transition_prob = [0.1, 0.1, 0.1, 0.1]
+        state_transition_prob[action] = 0.7
+
+        action = np.random.choice(range(4), p=state_transition_prob)
+
         if action == 0:  # 상
             if state[1] > UNIT:
                 base_action[1] -= UNIT
@@ -138,7 +143,7 @@ class Env(tk.Tk):
             done = False
 
         next_state = self.coords_to_state(next_state)
-        return next_state, reward, done
+        return next_state, reward, done, state_transition_prob, action
 
     def render(self):
         time.sleep(0.03)
